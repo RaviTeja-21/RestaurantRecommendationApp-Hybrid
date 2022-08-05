@@ -3,7 +3,7 @@ import "package:flutter/material.dart";
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:resto/services/showsnackbar.dart';
 
-import '../constants.dart';
+import '../utils/constants.dart';
 import '../main.dart';
 import '../services/upload_userdata.dart';
 
