@@ -1,10 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import '../screens/profile_screen.dart';
 import '../services/fetchdata.dart';
+import '../services/sendEmail.dart';
 import '../services/userlocation.dart';
 import '../widgets/dish_categoryview.dart';
-import '../constants.dart';
+import '../utils/constants.dart';
 import '../widgets/restaurant_categoryview.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -14,18 +14,16 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMixin {
+class _HomeScreenState extends State<HomeScreen>
+    with AutomaticKeepAliveClientMixin {
   final user = FirebaseAuth.instance.currentUser;
-  int currentIndex = 0;
   bool isloading = true;
 
-  String? location = "My Location";
+  String? location = "Welcome";
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    // placedata(); 
     getdata();
   }
 
@@ -39,7 +37,8 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
       });
     }
   }
-@override
+
+  @override
   bool get wantKeepAlive => true;
 
   @override
@@ -56,6 +55,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
               leading: IconButton(
                   onPressed: () {
                     FirebaseAuth.instance.signOut();
+                    // EmailService().sendemail(context);
                   },
                   icon: const Icon(Icons.logout, size: 30)),
               title: const Text('Log Out'),
@@ -69,22 +69,27 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
         elevation: 0,
         backgroundColor: Colors.transparent,
         centerTitle: true,
-        titleTextStyle: const TextStyle(color: Color(0xFF4B5563), fontWeight: FontWeight.w500, fontFamily: fontFamily, fontSize: 15),
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.location_on,
-              color: Color(0xFF32B768),
-            ),
-            const SizedBox(width: 5),
-            Expanded(
-              child: Text(location ?? "",
+        titleTextStyle: const TextStyle(
+            color: Color(0xFF4B5563),
+            fontWeight: FontWeight.w500,
+            fontFamily: fontFamily,
+            fontSize: 15),
+        title: Center(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.location_on,
+                color: icolor,
+              ),
+              const SizedBox(width: 5),
+              Text(location ?? "",
                   style: const TextStyle(
                     overflow: TextOverflow.fade,
                   )),
-            ),
-          ],
+            ],
+          ),
         ),
         actions: [
           // Container(
@@ -123,35 +128,20 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.only(top: 20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            DishCategoryView(),
-            isloading ? Container(height: 200, child: const Center(child: CircularProgressIndicator())) : RestuarentCatergoryView(),
-          ],
-        ),
-      ),
-      bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-            borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(5),
-          topRight: Radius.circular(5),
-        )),
-        child: BottomNavigationBar(
-          currentIndex: currentIndex,
-          onTap: (i) => setState(() => currentIndex = i),
-          selectedItemColor: const Color(0xFF32B768),
-          unselectedItemColor: const Color(0xFF374151),
-          iconSize: 30,
-          items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.home), label: "", backgroundColor: maincolor),
-            BottomNavigationBarItem(icon: Icon(Icons.description), label: "", backgroundColor: maincolor),
-            BottomNavigationBarItem(icon: Icon(Icons.account_circle), label: "", backgroundColor: maincolor),
-          ],
-        ),
+      body: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          DishCategoryView(),
+          isloading
+              ? const SizedBox(
+                  height: 300,
+                  child: Center(
+                      child: CircularProgressIndicator(
+                    color: icolor,
+                  )))
+              : const RestuarentCatergoryView(false),
+        ],
       ),
     );
   }

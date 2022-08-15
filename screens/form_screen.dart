@@ -4,15 +4,15 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_signin_button/flutter_signin_button.dart';
-import 'package:resto/constants.dart';
+import 'package:resto/utils/constants.dart';
 import 'package:resto/services/showsnackbar.dart';
 import 'package:resto/services/upload_userdata.dart';
-import 'package:resto/ui_helpers/form_spacer.dart';
 
-import '../main.dart';
-import '../providers/fb_sign_in.dart';
-import '../providers/google_sign_in.dart';
-import '../widgets/textfieldcontainer.dart';
+import '../../main.dart';
+import '../../providers/fb_sign_in.dart';
+import '../../providers/google_sign_in.dart';
+import '../../utils/form_spacer.dart';
+import '../../widgets/textfieldcontainer.dart';
 import 'forget_password.dart';
 
 class FormScreen extends StatefulWidget {
@@ -28,6 +28,8 @@ class _FormScreenState extends State<FormScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmController = TextEditingController();
+  final _addressController = TextEditingController();
   bool isuserLogging = false;
 
   @override
@@ -59,49 +61,57 @@ class _FormScreenState extends State<FormScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+             const SizedBox(height: 50),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 90),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    switcher(
-                        "Register", isuserLogging ? lmaincolor : maincolor),
+                    switcher("Register", isuserLogging ? lmaincolor : maincolor),
                     switcher("Login", isuserLogging ? maincolor : lmaincolor),
                   ],
                 ),
               ),
               const FormSpacer(),
-              isuserLogging
-                  // profile field
-                  ? const SizedBox()
-                  : TextFieldContainer(
-                      controller: _nameController,
-                      labelText: "Full Name",
-                      hintText: "Enter your full name",
-                      validator: (name) => name!.isEmpty
-                          ? "Please enter the profile name"
-                          : null,
-                    ),
+              if (!isuserLogging) ...[
+                // profile field
+                TextFieldContainer(
+                  controller: _nameController,
+                  labelText: "Full Name",
+                  hintText: "Enter your full name",
+                  validator: (name) => name!.isEmpty ? "Please enter the profile name" : null,
+                ),
+                TextFieldContainer(
+                  controller: _addressController,
+                  labelText: "Address",
+                  hintText: "Enter your address",
+                  validator: (name) => name!.isEmpty ? "Please enter the address" : null,
+                ),
+              ],
               // email field
               TextFieldContainer(
                 controller: _emailController,
                 labelText: "Email address",
                 hintText: "Eg nameemail@email.com",
-                validator: (email) =>
-                    email != null && !EmailValidator.validate(email)
-                        ? 'Enter a valid email'
-                        : null,
+                validator: (email) => email != null && !EmailValidator.validate(email) ? 'Enter a valid email' : null,
               ),
               // password field
               TextFieldContainer(
                 controller: _passwordController,
                 labelText: "Password",
                 hintText: "Password",
-                validator: (value) => value != null && value.length < 8
-                    ? 'Enter minimum 8 characters'
-                    : null,
+                validator: (value) => value != null && value.length < 8 ? 'Enter minimum 8 characters' : null,
                 obscureText: true,
               ),
+               if (!isuserLogging) ...[
+                // profile field
+                TextFieldContainer(
+                  controller: _confirmController,
+                  labelText: "Confirm Password",
+                  hintText: "Password",
+                  validator: (name) => _passwordController.text!= _confirmController.text ? "Password doesn't match" : null,
+                ),
+               ],
               isuserLogging
                   ? signbtn(
                       context,
@@ -115,7 +125,7 @@ class _FormScreenState extends State<FormScreen> {
                       _emailController,
                       _passwordController,
                     ),
-
+    
               // Forgot Password
               isuserLogging
                   ? Padding(
@@ -129,18 +139,15 @@ class _FormScreenState extends State<FormScreen> {
                           ),
                         ),
                         onTap: () {
-                          Navigator.of(context).push(MaterialPageRoute(
-                              builder: (context) =>
-                                  const ForgetPasswordPage()));
+                          Navigator.of(context).push(MaterialPageRoute(builder: (context) => const ForgetPasswordPage()));
                         },
                       ),
                     )
                   : const SizedBox(),
-
+    
               // Google signin button
               Padding(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 8, horizontal: 64),
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 64),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(15),
                   child: SizedBox(
@@ -150,9 +157,7 @@ class _FormScreenState extends State<FormScreen> {
                       text: "Sign up with Google",
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       onPressed: () {
-                        final provider = Provider.of<GoogleSignInProvider>(
-                            context,
-                            listen: false);
+                        final provider = Provider.of<GoogleSignInProvider>(context, listen: false);
                         provider.googleLogin(context);
                       },
                     ),
@@ -161,8 +166,7 @@ class _FormScreenState extends State<FormScreen> {
               ),
               // facebook signin button
               Padding(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 8, horizontal: 64),
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 64),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(15),
                   child: SizedBox(
@@ -172,8 +176,7 @@ class _FormScreenState extends State<FormScreen> {
                       Buttons.FacebookNew,
                       text: "Sign up with Facebook",
                       onPressed: () {
-                        final provider = Provider.of<FbSignInProvider>(context,
-                            listen: false);
+                        final provider = Provider.of<FbSignInProvider>(context, listen: false);
                         provider.fbLogin(context);
                       },
                     ),
@@ -195,17 +198,15 @@ class _FormScreenState extends State<FormScreen> {
         child: SizedBox(
           width: double.infinity,
           child: ElevatedButton(
-            onPressed: isuserLogging
-                ? () async => await login(ctx, email, password)
-                : () async => await register(ctx, name, email, password),
+            onPressed: isuserLogging ? () async => await login(ctx, email, password) : () async => await register(ctx, name, email, password),
             style: ElevatedButton.styleFrom(
               primary: maincolor,
               padding: const EdgeInsets.symmetric(vertical: 18),
-              textStyle:
-                  const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+              textStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
             ),
             child: Text(
               isuserLogging ? "Login" : "Register",
+              style:const TextStyle(color: Colors.white),
             ),
           ),
         ),
@@ -218,17 +219,12 @@ class _FormScreenState extends State<FormScreen> {
   Future login(ctx, email, password) async {
     final isValid = _formKey.currentState!.validate();
     if (!isValid) return;
-    showDialog(
-        context: ctx,
-        barrierDismissible: false,
-        builder: (context) =>
-            const Center(child: CircularProgressIndicator(color: maincolor)));
+    showDialog(context: ctx, barrierDismissible: false, builder: (context) => const Center(child: CircularProgressIndicator(color: maincolor)));
     try {
       await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: email.text.trim(),
         password: password.text.trim(),
       );
-      
     } on FirebaseAuthException catch (e) {
       showSnackBar(ctx, e.message.toString());
     }
@@ -238,17 +234,13 @@ class _FormScreenState extends State<FormScreen> {
   Future register(ctx, name, email, password) async {
     final isValid = _formKey.currentState!.validate();
     if (!isValid) return;
-    showDialog(
-        context: ctx,
-        barrierDismissible: false,
-        builder: (context) =>
-            const Center(child: CircularProgressIndicator(color: maincolor)));
+    showDialog(context: ctx, barrierDismissible: false, builder: (context) => const Center(child: CircularProgressIndicator(color: maincolor)));
     try {
       await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: email.text.trim(),
         password: password.text.trim(),
       );
-      uploaddata(name.text.trim());
+      uploaddata(name.text.trim(), _addressController.text);
     } on FirebaseAuthException catch (e) {
       showSnackBar(ctx, e.message.toString());
     }
